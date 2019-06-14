@@ -129,4 +129,12 @@ final class Menu extends AbstractMenuItemsContainer implements IMenu
     {
         $this->activePresenter = $presenter;
     }
+
+    /**
+     * @return ITranslator
+     */
+    public function getTranslator(): ITranslator
+    {
+        return $this->translator;
+    }
 }

@@ -1,5 +1,5 @@
 {
-	"name": "carrooi/nette-menu",
+	"name": "webwings/nette-menu",
 	"type": "library",
 	"description": "Menu for Nette framework",
 	"keywords": ["nette", "menu", "control", "component", "breadcrumbs"],
@@ -10,10 +10,14 @@
 			"name": "David Kudera",
 			"homepage": "http://davidkudera.com",
 			"email": "kudera.d@gmail.com"
+		},
+		{
+			"name": "Webwings s.r.o",
+			"homepage": "http://www.webwings.cz"
 		}
 	],
 	"support": {
-		"issues": "https://github.com/Carrooi/Nette-Menu/issues"
+		"issues": "https://github.com/webwingscz/Nette-Menu/issues"
 	},
 	"require": {
 		"php": ">=7.1",

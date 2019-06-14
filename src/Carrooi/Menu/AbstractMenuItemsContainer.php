@@ -14,152 +14,181 @@ use Nette\Localization\ITranslator;
  */
 abstract class AbstractMenuItemsContainer implements IMenuItemsContainer
 {
+    /** @var IMenu */
+    protected $menu;
 
+    /** @var ILinkGenerator */
+    protected $linkGenerator;
 
-	/** @var \Carrooi\Menu\IMenu */
-	protected $menu;
+    /** @var ITranslator */
+    protected $translator;
 
-	/** @var \Carrooi\Menu\LinkGenerator\ILinkGenerator */
-	protected $linkGenerator;
+    /** @var IAuthorizator */
+    protected $authorizator;
 
-	/** @var \Nette\Localization\ITranslator */
-	protected $translator;
+    /** @var Request */
+    protected $httpRequest;
 
-	/** @var \Carrooi\Menu\Security\IAuthorizator */
-	protected $authorizator;
+    /** @var IMenuItemFactory */
+    protected $menuItemFactory;
 
-	/** @var \Nette\Http\Request */
-	protected $httpRequest;
+    /** @var IMenuItem[] */
+    private $items = [];
 
-	/** @var \Carrooi\Menu\IMenuItemFactory */
-	protected $menuItemFactory;
+    /**
+     * AbstractMenuItemsContainer constructor.
+     * @param IMenu $menu
+     * @param ILinkGenerator $linkGenerator
+     * @param ITranslator $translator
+     * @param IAuthorizator $authorizator
+     * @param Request $httpRequest
+     * @param IMenuItemFactory $menuItemFactory
+     */
+    public function __construct(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory)
+    {
+        $this->menu = $menu;
+        $this->linkGenerator = $linkGenerator;
+        $this->translator = $translator;
+        $this->authorizator = $authorizator;
+        $this->httpRequest = $httpRequest;
+        $this->menuItemFactory = $menuItemFactory;
+    }
 
-	/** @var \Carrooi\Menu\IMenuItem[] */
-	private $items = [];
+    /**
+     * @param ILinkGenerator $linkGenerator
+     */
+    public function setLinkGenerator(ILinkGenerator $linkGenerator): void
+    {
+        $this->linkGenerator = $linkGenerator;
+    }
 
+    /**
+     * @return IMenuItem[]
+     */
+    public function getItems(): array
+    {
+        return $this->items;
+    }
 
-	public function __construct(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory)
-	{
-		$this->menu = $menu;
-		$this->linkGenerator = $linkGenerator;
-		$this->translator = $translator;
-		$this->authorizator = $authorizator;
-		$this->httpRequest = $httpRequest;
-		$this->menuItemFactory = $menuItemFactory;
-	}
+    /**
+     * @param string $name
+     * @return IMenuItem
+     */
+    public function getItem(string $name): IMenuItem
+    {
+        $path = explode('-', $name);
 
+        if (count($path) === 1) {
+            return $this->getItems()[$name];
+        }
 
-	public function setLinkGenerator(ILinkGenerator $linkGenerator): void
-	{
-		$this->linkGenerator = $linkGenerator;
-	}
+        $current = $this->getItem(array_shift($path));
 
+        while (count($path) > 0) {
+            $current = $current->getItem(array_shift($path));
+        }
 
-	/**
-	 * @return \Carrooi\Menu\IMenuItem[]
-	 */
-	public function getItems(): array
-	{
-		return $this->items;
-	}
+        return $current;
+    }
 
+    /**
+     * @param string $name
+     * @param string $title
+     * @param callable|null $fn
+     */
+    public function addItem(string $name, string $title, callable $fn = null): void
+    {
+        $this->items[$name] = $item = $this->menuItemFactory->create($this->menu, $this->linkGenerator, $this->translator, $this->authorizator, $this->httpRequest, $this->menuItemFactory, $title);
 
-	public function getItem(string $name): IMenuItem
-	{
-		$path = explode('-', $name);
+        if ($fn) {
+            $fn($item);
+        }
+    }
 
-		if (count($path) === 1) {
-			return $this->getItems()[$name];
-		}
+    /**
+     * @return IMenuItem|null
+     */
+    public function findActiveItem(): ?IMenuItem
+    {
+        foreach ($this->getItems() as $item) {
+            if ($item->isAllowed() && $item->isActive()) {
+                return $item;
+            }
+        }
 
-		$current = $this->getItem(array_shift($path));
+        return null;
+    }
 
-		while (count($path) > 0) {
-			$current = $current->getItem(array_shift($path));
-		}
+    /**
+     * @return bool
+     */
+    public function hasVisibleItemsOnMenu(): bool
+    {
+        return $this->hasVisibleItemsOn('menu');
+    }
 
-		return $current;
-	}
+    /**
+     * @return array
+     */
+    public function getVisibleItemsOnMenu(): array
+    {
+        return $this->getVisibleItemsOn('menu');
+    }
 
+    /**
+     * @return bool
+     */
+    public function hasVisibleItemsOnBreadcrumbs(): bool
+    {
+        return $this->hasVisibleItemsOn('breadcrumbs');
+    }
 
-	public function addItem(string $name, string $title, callable $fn = null): void
-	{
-		$this->items[$name] = $item = $this->menuItemFactory->create($this->menu, $this->linkGenerator, $this->translator, $this->authorizator, $this->httpRequest, $this->menuItemFactory, $title);
+    /**
+     * @return array
+     */
+    public function getVisibleItemsOnBreadcrumbs(): array
+    {
+        return $this->getVisibleItemsOn('breadcrumbs');
+    }
 
-		if ($fn) {
-			$fn($item);
-		}
-	}
+    /**
+     * @return bool
+     */
+    public function hasVisibleItemsOnSitemap(): bool
+    {
+        return $this->hasVisibleItemsOn('sitemap');
+    }
 
+    /**
+     * @return array
+     */
+    public function getVisibleItemsOnSitemap(): array
+    {
+        return $this->getVisibleItemsOn('sitemap');
+    }
 
-	public function findActiveItem(): ?IMenuItem
-	{
-		foreach ($this->getItems() as $item) {
-			if ($item->isAllowed() && $item->isActive()) {
-				return $item;
-			}
-		}
+    /**
+     * @param string $type
+     * @return bool
+     */
+    private function hasVisibleItemsOn(string $type): bool
+    {
+        return count($this->getVisibleItemsOn($type)) > 0;
+    }
 
-		return null;
-	}
-
-
-	public function hasVisibleItemsOnMenu(): bool
-	{
-		return $this->hasVisibleItemsOn('menu');
-	}
-
-
-	public function getVisibleItemsOnMenu(): array
-	{
-		return $this->getVisibleItemsOn('menu');
-	}
-
-
-	public function hasVisibleItemsOnBreadcrumbs(): bool
-	{
-		return $this->hasVisibleItemsOn('breadcrumbs');
-	}
-
-
-	public function getVisibleItemsOnBreadcrumbs(): array
-	{
-		return $this->getVisibleItemsOn('breadcrumbs');
-	}
-
-
-	public function hasVisibleItemsOnSitemap(): bool
-	{
-		return $this->hasVisibleItemsOn('sitemap');
-	}
-
-
-	public function getVisibleItemsOnSitemap(): array
-	{
-		return $this->getVisibleItemsOn('sitemap');
-	}
-
-
-	private function hasVisibleItemsOn(string $type): bool
-	{
-		return count($this->getVisibleItemsOn($type)) > 0;
-	}
-
-
-	/**
-	 * @param string $type
-	 * @return \Carrooi\Menu\AbstractMenuItemsContainer[]
-	 */
-	private function getVisibleItemsOn(string $type): array
-	{
-		return array_filter($this->getItems(), function(IMenuItem $item) use ($type) {
-			switch ($type) {
-				case 'menu': return $item->isVisibleOnMenu();
-				case 'breadcrumbs': return $item->isVisibleOnBreadcrumbs();
-				case 'sitemap': return $item->isVisibleOnSitemap();
-				default: return false;
-			}
-		});
-	}
-
+    /**
+     * @param string $type
+     * @return AbstractMenuItemsContainer[]
+     */
+    private function getVisibleItemsOn(string $type): array
+    {
+        return array_filter($this->getItems(), function (IMenuItem $item) use ($type) {
+            switch ($type) {
+                case 'menu': return $item->isVisibleOnMenu();
+                case 'breadcrumbs': return $item->isVisibleOnBreadcrumbs();
+                case 'sitemap': return $item->isVisibleOnSitemap();
+                default: return false;
+            }
+        });
+    }
 }

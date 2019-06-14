@@ -11,11 +11,12 @@ use Carrooi\Menu\IMenuItem;
  */
 final class OptimisticAuthorizator implements IAuthorizator
 {
-
-
-	public function isMenuItemAllowed(IMenuItem $item): bool
-	{
-		return true;
-	}
-
+    /**
+     * @param IMenuItem $item
+     * @return bool
+     */
+    public function isMenuItemAllowed(IMenuItem $item): bool
+    {
+        return true;
+    }
 }

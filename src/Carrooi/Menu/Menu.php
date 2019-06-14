@@ -16,95 +16,117 @@ use Nette\Localization\ITranslator;
  */
 final class Menu extends AbstractMenuItemsContainer implements IMenu
 {
+    /** @var \Carrooi\Menu\Loaders\IMenuLoader */
+    private $loader;
 
+    /** @var string */
+    private $name;
 
-	/** @var \Carrooi\Menu\Loaders\IMenuLoader */
-	private $loader;
+    /** @var string[] */
+    private $templates = [
+        'menu' => null,
+        'breadcrumbs' => null,
+        'sitemap' => null,
+    ];
 
-	/** @var string */
-	private $name;
+    /** @var Presenter */
+    private $activePresenter;
 
-	/** @var string[] */
-	private $templates = [
-		'menu' => null,
-		'breadcrumbs' => null,
-		'sitemap' => null,
-	];
+    /**
+     * Menu constructor.
+     * @param ILinkGenerator $linkGenerator
+     * @param ITranslator $translator
+     * @param IAuthorizator $authorizator
+     * @param Request $httpRequest
+     * @param IMenuItemFactory $menuItemFactory
+     * @param IMenuLoader $loader
+     * @param string $name
+     * @param string $menuTemplate
+     * @param string $breadcrumbsTemplate
+     * @param string $sitemapTemplate
+     */
+    public function __construct(ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, IMenuLoader $loader, string $name, string $menuTemplate, string $breadcrumbsTemplate, string $sitemapTemplate)
+    {
+        parent::__construct($this, $linkGenerator, $translator, $authorizator, $httpRequest, $menuItemFactory);
 
-	/** @var Presenter */
-	private $activePresenter;
+        $this->loader = $loader;
+        $this->name = $name;
+        $this->templates['menu'] = $menuTemplate;
+        $this->templates['breadcrumbs'] = $breadcrumbsTemplate;
+        $this->templates['sitemap'] = $sitemapTemplate;
+    }
 
+    public function init(): void
+    {
+        $this->loader->load($this);
+    }
 
-	public function __construct(ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, IMenuLoader $loader, string $name, string $menuTemplate, string $breadcrumbsTemplate, string $sitemapTemplate)
-	{
-		parent::__construct($this, $linkGenerator, $translator, $authorizator, $httpRequest, $menuItemFactory);
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-		$this->loader = $loader;
-		$this->name = $name;
-		$this->templates['menu'] = $menuTemplate;
-		$this->templates['breadcrumbs'] = $breadcrumbsTemplate;
-		$this->templates['sitemap'] = $sitemapTemplate;
-	}
+    /**
+     * @return string
+     */
+    public function getMenuTemplate(): string
+    {
+        return $this->templates['menu'];
+    }
 
+    /**
+     * @return string
+     */
+    public function getBreadcrumbsTemplate(): string
+    {
+        return $this->templates['breadcrumbs'];
+    }
 
-	public function init(): void
-	{
-		$this->loader->load($this);
-	}
+    /**
+     * @return string
+     */
+    public function getSitemapTemplate(): string
+    {
+        return $this->templates['sitemap'];
+    }
 
+    /**
+     * @return array
+     */
+    public function getPath(): array
+    {
+        $path = [];
+        $parent = $this;
 
-	public function getName(): string
-	{
-		return $this->name;
-	}
+        while ($parent) {
+            $item = $parent->findActiveItem();
 
+            if (!$item) {
+                break;
+            }
 
-	public function getMenuTemplate(): string
-	{
-		return $this->templates['menu'];
-	}
+            $parent = $path[] = $item;
+        }
 
+        return $path;
+    }
 
-	public function getBreadcrumbsTemplate(): string
-	{
-		return $this->templates['breadcrumbs'];
-	}
+    /**
+     * @return Presenter|null
+     */
+    public function getActivePresenter(): ?Presenter
+    {
+        return $this->activePresenter;
+    }
 
-
-	public function getSitemapTemplate(): string
-	{
-		return $this->templates['sitemap'];
-	}
-
-
-	public function getPath(): array
-	{
-		$path = [];
-		$parent = $this;
-
-		while ($parent) {
-			$item = $parent->findActiveItem();
-
-			if (!$item) {
-				break;
-			}
-
-			$parent = $path[] = $item;
-		}
-
-		return $path;
-	}
-
-
-	public function getActivePresenter(): ?Presenter
-	{
-		return $this->activePresenter;
-	}
-
-
-	public function setActivePresenter(?Presenter $presenter): void
-	{
-		$this->activePresenter = $presenter;
-	}
-
+    /**
+     * @param Presenter|null $presenter
+     */
+    public function setActivePresenter(?Presenter $presenter): void
+    {
+        $this->activePresenter = $presenter;
+    }
 }

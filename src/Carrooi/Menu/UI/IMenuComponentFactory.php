@@ -9,8 +9,5 @@ namespace Carrooi\Menu\UI;
  */
 interface IMenuComponentFactory
 {
-
-
-	public function create(string $name): MenuComponent;
-
+    public function create(string $name): MenuComponent;
 }

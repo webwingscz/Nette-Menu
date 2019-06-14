@@ -14,8 +14,5 @@ use Nette\Localization\ITranslator;
  */
 interface IMenuItemFactory
 {
-
-
-	public function create(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, string $title): IMenuItem;
-
+    public function create(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, string $title): IMenuItem;
 }

@@ -14,11 +14,18 @@ use Nette\Localization\ITranslator;
  */
 final class MenuItemFactory implements IMenuItemFactory
 {
-
-
-	public function create(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, string $title): IMenuItem
-	{
-		return new MenuItem($menu, $linkGenerator, $translator, $authorizator, $httpRequest, $menuItemFactory, $title);
-	}
-
+    /**
+     * @param IMenu $menu
+     * @param ILinkGenerator $linkGenerator
+     * @param ITranslator $translator
+     * @param IAuthorizator $authorizator
+     * @param Request $httpRequest
+     * @param IMenuItemFactory $menuItemFactory
+     * @param string $title
+     * @return IMenuItem
+     */
+    public function create(IMenu $menu, ILinkGenerator $linkGenerator, ITranslator $translator, IAuthorizator $authorizator, Request $httpRequest, IMenuItemFactory $menuItemFactory, string $title): IMenuItem
+    {
+        return new MenuItem($menu, $linkGenerator, $translator, $authorizator, $httpRequest, $menuItemFactory, $title);
+    }
 }

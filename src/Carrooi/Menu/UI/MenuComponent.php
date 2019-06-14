@@ -14,68 +14,62 @@ use Nette\Application\UI\Presenter;
  */
 final class MenuComponent extends Control
 {
+    /** @var MenuContainer */
+    private $container;
 
+    /** @var string */
+    private $menuName;
 
-	/** @var \Carrooi\Menu\MenuContainer */
-	private $container;
+    /**
+     * MenuComponent constructor.
+     * @param MenuContainer $container
+     * @param string $name
+     */
+    public function __construct(MenuContainer $container, string $name)
+    {
+        $this->container = $container;
+        $this->menuName = $name;
 
-	/** @var string */
-	private $menuName;
+        $this->monitor(Presenter::class, [$this, 'onPresenter']);
+    }
 
+    public function render(): void
+    {
+        $menu = $this->container->getMenu($this->menuName);
+        $this->renderType($menu, $menu->getMenuTemplate());
+    }
 
-	public function __construct(MenuContainer $container, string $name)
-	{
-		parent::__construct();
+    public function renderBreadcrumbs(): void
+    {
+        $menu = $this->container->getMenu($this->menuName);
+        $this->renderType($menu, $menu->getBreadcrumbsTemplate());
+    }
 
-		$this->container = $container;
-		$this->menuName = $name;
-	}
+    public function renderSitemap(): void
+    {
+        $menu = $this->container->getMenu($this->menuName);
+        $this->renderType($menu, $menu->getSitemapTemplate());
+    }
 
+    /**
+     * @param IMenu $menu
+     * @param string $menuTemplate
+     */
+    public function renderType(IMenu $menu, string $menuTemplate): void
+    {
+        $this->template->setFile($menuTemplate);
+        $this->template->menu = $menu;
 
-	public function render(): void
-	{
-		$menu = $this->container->getMenu($this->menuName);
-		$this->renderType($menu, $menu->getMenuTemplate());
-	}
+        $this->template->render();
+    }
 
-
-	public function renderBreadcrumbs(): void
-	{
-		$menu = $this->container->getMenu($this->menuName);
-		$this->renderType($menu, $menu->getBreadcrumbsTemplate());
-	}
-
-
-	public function renderSitemap(): void
-	{
-		$menu = $this->container->getMenu($this->menuName);
-		$this->renderType($menu, $menu->getSitemapTemplate());
-	}
-
-
-	public function renderType(IMenu $menu, string $menuTemplate): void
-	{
-		$this->template->setFile($menuTemplate);
-		$this->template->menu = $menu;
-
-		$this->template->render();
-	}
-
-
-	/**
-	 * This method will be called when the component (or component's parent)
-	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  \Nette\ComponentModel\IComponent
-	 * @return void
-	 */
-	protected function attached($presenter)
-	{
-		if ($presenter instanceof Presenter) {
-			$menu = $this->container->getMenu($this->menuName);
-			$menu->setActivePresenter($presenter);
-		}
-
-		parent::attached($presenter);
-	}
-
+    /**
+     * @param Presenter $presenter
+     * @return void
+     */
+    public function onPresenter(Presenter $presenter): void
+    {
+        $menu = $this->container->getMenu($this->menuName);
+        $menu->setActivePresenter($presenter);
+    }
 }

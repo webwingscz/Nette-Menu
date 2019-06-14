@@ -9,21 +9,23 @@ namespace Carrooi\Menu;
  */
 final class MenuContainer
 {
+    /** @var \Carrooi\Menu\IMenu[] */
+    private $menus = [];
 
+    /**
+     * @param string $name
+     * @return IMenu
+     */
+    public function getMenu(string $name): IMenu
+    {
+        return $this->menus[$name];
+    }
 
-	/** @var \Carrooi\Menu\IMenu[] */
-	private $menus = [];
-
-
-	public function getMenu(string $name): IMenu
-	{
-		return $this->menus[$name];
-	}
-
-
-	public function addMenu(IMenu $menu): void
-	{
-		$this->menus[$menu->getName()] = $menu;
-	}
-
+    /**
+     * @param IMenu $menu
+     */
+    public function addMenu(IMenu $menu): void
+    {
+        $this->menus[$menu->getName()] = $menu;
+    }
 }

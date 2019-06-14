@@ -11,8 +11,5 @@ use Carrooi\Menu\IMenuItem;
  */
 interface IAuthorizator
 {
-
-
-	public function isMenuItemAllowed(IMenuItem $item): bool;
-
+    public function isMenuItemAllowed(IMenuItem $item): bool;
 }
